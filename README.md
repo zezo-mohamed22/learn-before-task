@@ -1,49 +1,74 @@
-# learn-before-task
+# Greenlight API
 
-A [Claude skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that turns every task into a learning opportunity.
+A JSON API for managing movie information, built while working through
+*Let's Go Further* by Alex Edwards.
 
-Before you start a ticket, issue, bug, or feature, Claude gives you a short **"learn first" brief**:
+> **Status:** work in progress. Currently through Chapter 3 (Sending JSON responses).
 
-- The 2–4 concepts the task really depends on, and *why* this task needs each one (tied to your actual code)
-- Trusted resources only — no invented links
-- A small timeboxed plan: read → read the code → predict-then-run experiment
-- Self-check questions you answer in your own words before you start
+## Requirements
 
-When you finish, Claude offers a short **debrief** so the knowledge sticks.
+- Go 1.27 or newer (the project uses `encoding/json/v2`)
 
-## Why
+## Running the API
 
-It's easy to finish a task with AI help and learn nothing. This skill is built on a few ideas that make learning actually work:
+```bash
+go run ./cmd/api
+```
 
-- **Prior knowledge first** — Claude checks what you already know and skips it.
-- **Few concepts, deeply** — only the ones the task can't be done without.
-- **Concrete over abstract** — every concept is linked to a file, function, or failure case.
-- **Prediction** — you guess the result of an experiment before running it.
-- **Retrieval & explanation** — "why" questions before, a teach-back after.
+The server starts on port `4000` in the `development` environment by default.
 
-## Install
+### Command-line flags
 
-**Claude.ai / Claude app:** zip the `learn-before-task` folder and upload it under Settings → Capabilities → Skills.
+| Flag    | Default       | Description                                        |
+|---------|---------------|----------------------------------------------------|
+| `-port` | `4000`        | Port the API server listens on                     |
+| `-env`  | `development` | Environment (`development`, `staging`, `production`) |
 
-**Claude Code:** copy the folder into `~/.claude/skills/` (personal) or `.claude/skills/` in your repo (project).
+Example:
 
-## Usage
+```bash
+go run ./cmd/api -port=8080 -env=staging
+```
 
-Just start a task:
+## Endpoints
 
-> I'm starting this issue: add rate limiting to the public API
+| Method | Path              | Description                                   |
+|--------|-------------------|-----------------------------------------------|
+| GET    | `/v1/healthcheck` | Returns the API status, environment and version |
+| POST   | `/v1/movies`      | Create a new movie *(placeholder for now)*    |
+| GET    | `/v1/movies/:id`  | Show a movie by ID *(returns sample data for now)* |
 
-or say "skip the brief" when you already know the topic.
+### Examples
 
-## Customize
+```bash
+curl -i localhost:4000/v1/healthcheck
+```
 
-Edit `SKILL.md` to fit you:
+```json
+{"environment":"development","status":"available","version":"1.0.0"}
+```
 
-- **Concepts** — change the example list in step 3 to your domain (frontend, data, mobile, ML…).
-- **Resources** — add the docs, books, or internal notes you trust in step 5.
-- **Time budget** — adjust the plan length in step 6.
-- **Notes** — point the debrief to your notes folder or study tracker.
+```bash
+curl -i localhost:4000/v1/movies/123
+```
 
-## License
+```json
+{"id":123,"title":"Casablanca","year":0,"genres":["romance","drama","war"],"version":1}
+```
 
-MIT
+An `id` that is not a positive integer currently returns a plain-text `404`.
+This will become a JSON error response later in the book.
+
+## Project structure
+
+```
+cmd/api/           Application code: main, routes, handlers and helpers
+internal/models/   Data types such as Movie
+migrations/        Database migrations (not used yet)
+remote/            Deployment files (not used yet)
+bin/               Compiled binaries
+```
+
+## Dependencies
+
+- [`julienschmidt/httprouter`](https://github.com/julienschmidt/httprouter) for routing
